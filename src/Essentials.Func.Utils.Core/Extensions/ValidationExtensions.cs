@@ -2,7 +2,7 @@
 using LanguageExt;
 using LanguageExt.Common;
 
-namespace Essentials.Func.Utils.Core.Extensions;
+namespace Essentials.Func.Utils.Extensions;
 
 /// <summary>
 /// Методы расширения для монады Validation

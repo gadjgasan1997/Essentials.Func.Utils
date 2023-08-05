@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <RootNamespace>Essentials.Func.Utils</RootNamespace>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <PackageId>Essentials.Func.Utils</PackageId>
+        <Version>1.0.0.1</Version>
+        <Authors>Gadzhinskiy Gasan</Authors>
+        <Product>Essentials.Func.Utils</Product>
+        <Description>
+            Утилиты для использования элементов функционального программирования в c#
+        </Description>
+    </PropertyGroup>
+
+
+    <ItemGroup>
+      <PackageReference Include="LanguageExt.Core" Version="4.4.3" />
+    </ItemGroup>
+
+</Project>

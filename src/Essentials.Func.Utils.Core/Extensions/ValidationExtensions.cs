@@ -15,33 +15,16 @@ public static class ValidationExtensions
     /// <summary>
     /// Вызывает делегат func в случае успешого статуса монады
     /// </summary>
-    /// <param name="validation">Объект validation</param>
-    /// <param name="func">Делегат</param>
-    /// <typeparam name="TValue">Тип значения в монаде</typeparam>
-    /// <typeparam name="TResult">Тип результата</typeparam>
-    /// <returns></returns>
-    public static Task<Validation<Error, TResult>> DefaultBindAsync<TValue, TResult>(
-        this Validation<Error, TValue> validation,
-        Func<TValue, Validation<Error, TResult>> func)
-    {
-        return validation.Bind(func).AsTask();
-    }
-    
-    /// <summary>
-    /// Вызывает делегат func в случае успешого статуса монады
-    /// </summary>
     /// <param name="task">Задача с объектом validation</param>
     /// <param name="func">Делегат</param>
-    /// <param name="continueOnCapturedContext">Признак необходимости выполнить продолжение на захваченном контексте</param>
     /// <typeparam name="TValue">Тип значения в монаде</typeparam>
     /// <typeparam name="TResult">Тип результата</typeparam>
     /// <returns></returns>
-    public static async Task<Validation<Error, TResult>> DefaultBindAsync<TValue, TResult>(
+    public static async Task<Validation<Error, TResult>> BindAsync<TValue, TResult>(
         this Task<Validation<Error, TValue>> task,
-        Func<TValue, Validation<Error, TResult>> func,
-        bool continueOnCapturedContext = false)
+        Func<TValue, Validation<Error, TResult>> func)
     {
-        var validation = await task.ConfigureAwait(continueOnCapturedContext);
+        var validation = await task.ConfigureAwait(false);
         return validation.Bind(func);
     }
 
@@ -53,11 +36,14 @@ public static class ValidationExtensions
     /// <typeparam name="TValue">Тип значения в монаде</typeparam>
     /// <typeparam name="TResult">Тип результата</typeparam>
     /// <returns></returns>
-    public static Task<Validation<Error, TResult>> DefaultBindAsync<TValue, TResult>(
+    public static async Task<Validation<Error, TResult>> BindAsync<TValue, TResult>(
         this Validation<Error, TValue> validation,
         Func<TValue, Task<Validation<Error, TResult>>> func)
     {
-        return validation.DefaultBindAsync(value => func(value).Result);
+        if (validation.IsSuccess)
+            return await func((TValue) validation.Case).ConfigureAwait(false);
+        
+        return (Seq<Error>) validation.Case;
     }
 
     /// <summary>
@@ -65,49 +51,30 @@ public static class ValidationExtensions
     /// </summary>
     /// <param name="task">Задача с объектом validation</param>
     /// <param name="func">Делегат</param>
-    /// <param name="continueOnCapturedContext">Признак необходимости выполнить продолжение на захваченном контексте</param>
     /// <typeparam name="TValue">Тип значения в монаде</typeparam>
     /// <typeparam name="TResult">Тип результата</typeparam>
     /// <returns></returns>
-    public static async Task<Validation<Error, TResult>> DefaultBindAsync<TValue, TResult>(
+    public static async Task<Validation<Error, TResult>> BindAsync<TValue, TResult>(
         this Task<Validation<Error, TValue>> task,
-        Func<TValue, Task<Validation<Error, TResult>>> func,
-        bool continueOnCapturedContext = false)
+        Func<TValue, Task<Validation<Error, TResult>>> func)
     {
-        var validation = await task.ConfigureAwait(continueOnCapturedContext);
-        return validation.Bind(value => func(value).Result);
+        var validation = await task.ConfigureAwait(false);
+        return await validation.BindAsync(func).ConfigureAwait(false);
     }
 
     /// <summary>
     /// Вызывает делегат func в случае успешого статуса монады
     /// </summary>
-    /// <param name="validation">Объект validation</param>
+    /// <param name="task">Задача с объектом validation</param>
     /// <param name="func">Делегат</param>
     /// <typeparam name="TValue">Тип значения в монаде</typeparam>
     /// <typeparam name="TResult">Тип результата</typeparam>
     /// <returns></returns>
-    public static Task<Validation<Error, TResult>> DefaultBindAsync<TValue, TResult>(
-        this Validation<Error, TValue> validation,
+    public static async Task<Validation<Error, TResult>> BindAsync<TValue, TResult>(
+        this Task<Validation<Error, TValue>> task,
         Func<TValue, TResult> func)
     {
-        return validation.Bind<TResult>(value => func(value)).AsTask();
-    }
-
-    /// <summary>
-    /// Вызывает делегат func в случае успешого статуса монады
-    /// </summary>
-    /// <param name="task">Задача с объектом validation</param>
-    /// <param name="func">Делегат</param>
-    /// <param name="continueOnCapturedContext">Признак необходимости выполнить продолжение на захваченном контексте</param>
-    /// <typeparam name="TValue">Тип значения в монаде</typeparam>
-    /// <typeparam name="TResult">Тип результата</typeparam>
-    /// <returns></returns>
-    public static async Task<Validation<Error, TResult>> DefaultBindAsync<TValue, TResult>(
-        this Task<Validation<Error, TValue>> task,
-        Func<TValue, TResult> func,
-        bool continueOnCapturedContext = false)
-    {
-        var validation = await task.ConfigureAwait(continueOnCapturedContext);
+        var validation = await task.ConfigureAwait(false);
         return validation.Bind<TResult>(value => func(value));
     }
 
@@ -119,11 +86,14 @@ public static class ValidationExtensions
     /// <typeparam name="TValue">Тип значения в монаде</typeparam>
     /// <typeparam name="TResult">Тип результата</typeparam>
     /// <returns></returns>
-    public static Task<Validation<Error, TResult>> DefaultBindAsync<TValue, TResult>(
+    public static async Task<Validation<Error, TResult>> BindAsync<TValue, TResult>(
         this Validation<Error, TValue> validation,
         Func<TValue, Task<TResult>> func)
     {
-        return validation.DefaultBindAsync(value => func(value).Result);
+        if (validation.IsSuccess)
+            return await func((TValue) validation.Case).ConfigureAwait(false);
+        
+        return (Seq<Error>) validation.Case;
     }
 
     /// <summary>
@@ -131,35 +101,15 @@ public static class ValidationExtensions
     /// </summary>
     /// <param name="task">Задача с объектом validation</param>
     /// <param name="func">Делегат</param>
-    /// <param name="continueOnCapturedContext">Признак необходимости выполнить продолжение на захваченном контексте</param>
     /// <typeparam name="TValue">Тип значения в монаде</typeparam>
     /// <typeparam name="TResult">Тип результата</typeparam>
     /// <returns></returns>
-    public static async Task<Validation<Error, TResult>> DefaultBindAsync<TValue, TResult>(
+    public static async Task<Validation<Error, TResult>> BindAsync<TValue, TResult>(
         this Task<Validation<Error, TValue>> task,
-        Func<TValue, Task<TResult>> func,
-        bool continueOnCapturedContext = false)
+        Func<TValue, Task<TResult>> func)
     {
-        var validation = await task.ConfigureAwait(continueOnCapturedContext);
-        return validation.Bind<TResult>(value => func(value).Result);
-    }
-
-    /// <summary>
-    /// Вызывает делегат Succ или Fail в зависимости от статуса монады
-    /// </summary>
-    /// <param name="validation">Объект validation</param>
-    /// <param name="Succ">Делегат, вызывающийся в случае статуса успеха</param>
-    /// <param name="Fail">Делегат, вызывающийся в случае статуса ошибки</param>
-    /// <typeparam name="TValue">Тип значения в монаде</typeparam>
-    /// <typeparam name="TResult">Тип результата</typeparam>
-    /// <returns></returns>
-    public static Task<TResult> DefaultMatchAsync<TValue, TResult>(
-        this Validation<Error, TValue> validation,
-        Func<TValue, TResult> Succ,
-        Func<Seq<Error>, TResult> Fail)
-        where TResult : notnull
-    {
-        return validation.Match(Succ, Fail).AsTask();
+        var validation = await task.ConfigureAwait(false);
+        return await validation.BindAsync(func).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -168,55 +118,34 @@ public static class ValidationExtensions
     /// <param name="task">Задача с объектом validation</param>
     /// <param name="Succ">Делегат, вызывающийся в случае статуса успеха</param>
     /// <param name="Fail">Делегат, вызывающийся в случае статуса ошибки</param>
-    /// <param name="continueOnCapturedContext">Признак необходимости выполнить продолжение на захваченном контексте</param>
     /// <typeparam name="TValue">Тип значения в монаде</typeparam>
     /// <typeparam name="TResult">Тип результата</typeparam>
     /// <returns></returns>
-    public static async Task<TResult> DefaultMatchAsync<TValue, TResult>(
+    public static async Task<TResult> MatchAsync<TValue, TResult>(
         this Task<Validation<Error, TValue>> task,
         Func<TValue, TResult> Succ,
-        Func<Seq<Error>, TResult> Fail,
-        bool continueOnCapturedContext = false)
+        Func<Seq<Error>, TResult> Fail)
         where TResult : notnull
     {
-        var validation = await task.ConfigureAwait(continueOnCapturedContext);
+        var validation = await task.ConfigureAwait(false);
         return validation.Match(Succ, Fail);
     }
 
     /// <summary>
     /// Вызывает делегат Succ или Fail в зависимости от статуса монады, не проверяя результат на null
     /// </summary>
-    /// <param name="validation">Объект validation</param>
-    /// <param name="Succ">Делегат, вызывающийся в случае статуса успеха</param>
-    /// <param name="Fail">Делегат, вызывающийся в случае статуса ошибки</param>
-    /// <typeparam name="TValue">Тип значения в монаде</typeparam>
-    /// <typeparam name="TResult">Тип результата</typeparam>
-    /// <returns></returns>
-    public static Task<TResult?> DefaultMatchUnsafeAsync<TValue, TResult>(
-        this Validation<Error, TValue> validation,
-        Func<TValue, TResult?> Succ,
-        Func<Seq<Error>, TResult?> Fail)
-    {
-        return validation.MatchUnsafe(Succ, Fail).AsTask();
-    }
-
-    /// <summary>
-    /// Вызывает делегат Succ или Fail в зависимости от статуса монады, не проверяя результат на null
-    /// </summary>
     /// <param name="task">Задача с объектом validation</param>
     /// <param name="Succ">Делегат, вызывающийся в случае статуса успеха</param>
     /// <param name="Fail">Делегат, вызывающийся в случае статуса ошибки</param>
-    /// <param name="continueOnCapturedContext">Признак необходимости выполнить продолжение на захваченном контексте</param>
     /// <typeparam name="TValue">Тип значения в монаде</typeparam>
     /// <typeparam name="TResult">Тип результата</typeparam>
     /// <returns></returns>
-    public static async Task<TResult?> DefaultMatchUnsafeAsync<TValue, TResult>(
+    public static async Task<TResult?> MatchUnsafeAsync<TValue, TResult>(
         this Task<Validation<Error, TValue>> task,
         Func<TValue, TResult?> Succ,
-        Func<Seq<Error>, TResult?> Fail,
-        bool continueOnCapturedContext = false)
+        Func<Seq<Error>, TResult?> Fail)
     {
-        var validation = await task.ConfigureAwait(continueOnCapturedContext);
+        var validation = await task.ConfigureAwait(false);
         return validation.MatchUnsafe(Succ, Fail);
     }
 
@@ -229,13 +158,18 @@ public static class ValidationExtensions
     /// <typeparam name="TValue">Тип значения в монаде</typeparam>
     /// <typeparam name="TResult">Тип результата</typeparam>
     /// <returns></returns>
-    public static Task<TResult> DefaultMatchAsync<TValue, TResult>(
+    public static async Task<TResult> MatchAsync<TValue, TResult>(
         this Validation<Error, TValue> validation,
         Func<TValue, Task<TResult>> Succ,
         Func<Seq<Error>, TResult> Fail)
         where TResult : notnull
     {
-        return validation.DefaultMatchAsync(value => Succ(value).Result, Fail);
+        return validation.Case switch
+        {
+            Seq<Error> errors => Fail(errors),
+            TValue value => await Succ(value).ConfigureAwait(false),
+            _ => Fail(new Seq<Error>())
+        };
     }
 
     /// <summary>
@@ -244,19 +178,17 @@ public static class ValidationExtensions
     /// <param name="task">Задача с объектом validation</param>
     /// <param name="Succ">Делегат, вызывающийся в случае статуса успеха</param>
     /// <param name="Fail">Делегат, вызывающийся в случае статуса ошибки</param>
-    /// <param name="continueOnCapturedContext">Признак необходимости выполнить продолжение на захваченном контексте</param>
     /// <typeparam name="TValue">Тип значения в монаде</typeparam>
     /// <typeparam name="TResult">Тип результата</typeparam>
     /// <returns></returns>
-    public static async Task<TResult> DefaultMatchAsync<TValue, TResult>(
+    public static async Task<TResult> MatchAsync<TValue, TResult>(
         this Task<Validation<Error, TValue>> task,
         Func<TValue, Task<TResult>> Succ,
-        Func<Seq<Error>, TResult> Fail,
-        bool continueOnCapturedContext = false)
+        Func<Seq<Error>, TResult> Fail)
         where TResult : notnull
     {
-        var validation = await task.ConfigureAwait(continueOnCapturedContext);
-        return validation.Match(value => Succ(value).Result, Fail);
+        var validation = await task.ConfigureAwait(false);
+        return await validation.MatchAsync(Succ, Fail).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -268,12 +200,17 @@ public static class ValidationExtensions
     /// <typeparam name="TValue">Тип значения в монаде</typeparam>
     /// <typeparam name="TResult">Тип результата</typeparam>
     /// <returns></returns>
-    public static Task<TResult?> DefaultMatchUnsafeAsync<TValue, TResult>(
+    public static async Task<TResult?> MatchUnsafeAsync<TValue, TResult>(
         this Validation<Error, TValue> validation,
         Func<TValue, Task<TResult?>> Succ,
         Func<Seq<Error>, TResult?> Fail)
     {
-        return validation.DefaultMatchUnsafeAsync(value => Succ(value).Result, Fail);
+        return validation.Case switch
+        {
+            Seq<Error> errors => Fail(errors),
+            TValue value => await Succ(value).ConfigureAwait(false),
+            _ => Fail(new Seq<Error>())
+        };
     }
 
     /// <summary>
@@ -282,17 +219,15 @@ public static class ValidationExtensions
     /// <param name="task">Задача с объектом validation</param>
     /// <param name="Succ">Делегат, вызывающийся в случае статуса успеха</param>
     /// <param name="Fail">Делегат, вызывающийся в случае статуса ошибки</param>
-    /// <param name="continueOnCapturedContext">Признак необходимости выполнить продолжение на захваченном контексте</param>
     /// <typeparam name="TValue">Тип значения в монаде</typeparam>
     /// <typeparam name="TResult">Тип результата</typeparam>
     /// <returns></returns>
-    public static async Task<TResult?> DefaultMatchUnsafeAsync<TValue, TResult>(
+    public static async Task<TResult?> MatchUnsafeAsync<TValue, TResult>(
         this Task<Validation<Error, TValue>> task,
         Func<TValue, Task<TResult?>> Succ,
-        Func<Seq<Error>, TResult?> Fail,
-        bool continueOnCapturedContext = false)
+        Func<Seq<Error>, TResult?> Fail)
     {
-        var validation = await task.ConfigureAwait(continueOnCapturedContext);
-        return validation.MatchUnsafe(value => Succ(value).Result, Fail);
+        var validation = await task.ConfigureAwait(false);
+        return await validation.MatchUnsafeAsync(Succ, Fail).ConfigureAwait(false);
     }
 }

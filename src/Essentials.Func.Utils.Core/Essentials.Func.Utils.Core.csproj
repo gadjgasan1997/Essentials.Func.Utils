@@ -9,7 +9,7 @@
 
     <PropertyGroup>
         <PackageId>Essentials.Func.Utils</PackageId>
-        <Version>1.0.0.5</Version>
+        <Version>1.0.0.7</Version>
         <Authors>Gadzhinskiy Gasan</Authors>
         <Product>Essentials.Func.Utils</Product>
         <Description>

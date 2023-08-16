@@ -32,14 +32,17 @@ public static class ValidationExtensions
     /// </summary>
     /// <param name="task">Задача с объектом validation</param>
     /// <param name="func">Делегат</param>
+    /// <param name="continueOnCapturedContext">Признак необходимости выполнить продолжение на захваченном контексте</param>
     /// <typeparam name="TValue">Тип значения в монаде</typeparam>
     /// <typeparam name="TResult">Тип результата</typeparam>
     /// <returns></returns>
-    public static Task<Validation<Error, TResult>> DefaultBindAsync<TValue, TResult>(
+    public static async Task<Validation<Error, TResult>> DefaultBindAsync<TValue, TResult>(
         this Task<Validation<Error, TValue>> task,
-        Func<TValue, Validation<Error, TResult>> func)
+        Func<TValue, Validation<Error, TResult>> func,
+        bool continueOnCapturedContext = false)
     {
-        return task.Result.DefaultBindAsync(func);
+        var validation = await task.ConfigureAwait(continueOnCapturedContext);
+        return validation.Bind(func);
     }
 
     /// <summary>
@@ -62,14 +65,17 @@ public static class ValidationExtensions
     /// </summary>
     /// <param name="task">Задача с объектом validation</param>
     /// <param name="func">Делегат</param>
+    /// <param name="continueOnCapturedContext">Признак необходимости выполнить продолжение на захваченном контексте</param>
     /// <typeparam name="TValue">Тип значения в монаде</typeparam>
     /// <typeparam name="TResult">Тип результата</typeparam>
     /// <returns></returns>
-    public static Task<Validation<Error, TResult>> DefaultBindAsync<TValue, TResult>(
+    public static async Task<Validation<Error, TResult>> DefaultBindAsync<TValue, TResult>(
         this Task<Validation<Error, TValue>> task,
-        Func<TValue, Task<Validation<Error, TResult>>> func)
+        Func<TValue, Task<Validation<Error, TResult>>> func,
+        bool continueOnCapturedContext = false)
     {
-        return task.Result.DefaultBindAsync(func);
+        var validation = await task.ConfigureAwait(continueOnCapturedContext);
+        return validation.Bind(value => func(value).Result);
     }
 
     /// <summary>
@@ -92,14 +98,17 @@ public static class ValidationExtensions
     /// </summary>
     /// <param name="task">Задача с объектом validation</param>
     /// <param name="func">Делегат</param>
+    /// <param name="continueOnCapturedContext">Признак необходимости выполнить продолжение на захваченном контексте</param>
     /// <typeparam name="TValue">Тип значения в монаде</typeparam>
     /// <typeparam name="TResult">Тип результата</typeparam>
     /// <returns></returns>
-    public static Task<Validation<Error, TResult>> DefaultBindAsync<TValue, TResult>(
+    public static async Task<Validation<Error, TResult>> DefaultBindAsync<TValue, TResult>(
         this Task<Validation<Error, TValue>> task,
-        Func<TValue, TResult> func)
+        Func<TValue, TResult> func,
+        bool continueOnCapturedContext = false)
     {
-        return task.Result.DefaultBindAsync(func);
+        var validation = await task.ConfigureAwait(continueOnCapturedContext);
+        return validation.Bind<TResult>(value => func(value));
     }
 
     /// <summary>
@@ -122,14 +131,17 @@ public static class ValidationExtensions
     /// </summary>
     /// <param name="task">Задача с объектом validation</param>
     /// <param name="func">Делегат</param>
+    /// <param name="continueOnCapturedContext">Признак необходимости выполнить продолжение на захваченном контексте</param>
     /// <typeparam name="TValue">Тип значения в монаде</typeparam>
     /// <typeparam name="TResult">Тип результата</typeparam>
     /// <returns></returns>
-    public static Task<Validation<Error, TResult>> DefaultBindAsync<TValue, TResult>(
+    public static async Task<Validation<Error, TResult>> DefaultBindAsync<TValue, TResult>(
         this Task<Validation<Error, TValue>> task,
-        Func<TValue, Task<TResult>> func)
+        Func<TValue, Task<TResult>> func,
+        bool continueOnCapturedContext = false)
     {
-        return task.Result.DefaultBindAsync(func);
+        var validation = await task.ConfigureAwait(continueOnCapturedContext);
+        return validation.Bind<TResult>(value => func(value).Result);
     }
 
     /// <summary>
@@ -156,16 +168,19 @@ public static class ValidationExtensions
     /// <param name="task">Задача с объектом validation</param>
     /// <param name="Succ">Делегат, вызывающийся в случае статуса успеха</param>
     /// <param name="Fail">Делегат, вызывающийся в случае статуса ошибки</param>
+    /// <param name="continueOnCapturedContext">Признак необходимости выполнить продолжение на захваченном контексте</param>
     /// <typeparam name="TValue">Тип значения в монаде</typeparam>
     /// <typeparam name="TResult">Тип результата</typeparam>
     /// <returns></returns>
-    public static Task<TResult> DefaultMatchAsync<TValue, TResult>(
+    public static async Task<TResult> DefaultMatchAsync<TValue, TResult>(
         this Task<Validation<Error, TValue>> task,
         Func<TValue, TResult> Succ,
-        Func<Seq<Error>, TResult> Fail)
+        Func<Seq<Error>, TResult> Fail,
+        bool continueOnCapturedContext = false)
         where TResult : notnull
     {
-        return task.Result.DefaultMatchAsync(Succ, Fail);
+        var validation = await task.ConfigureAwait(continueOnCapturedContext);
+        return validation.Match(Succ, Fail);
     }
 
     /// <summary>
@@ -191,15 +206,18 @@ public static class ValidationExtensions
     /// <param name="task">Задача с объектом validation</param>
     /// <param name="Succ">Делегат, вызывающийся в случае статуса успеха</param>
     /// <param name="Fail">Делегат, вызывающийся в случае статуса ошибки</param>
+    /// <param name="continueOnCapturedContext">Признак необходимости выполнить продолжение на захваченном контексте</param>
     /// <typeparam name="TValue">Тип значения в монаде</typeparam>
     /// <typeparam name="TResult">Тип результата</typeparam>
     /// <returns></returns>
-    public static Task<TResult?> DefaultMatchUnsafeAsync<TValue, TResult>(
+    public static async Task<TResult?> DefaultMatchUnsafeAsync<TValue, TResult>(
         this Task<Validation<Error, TValue>> task,
         Func<TValue, TResult?> Succ,
-        Func<Seq<Error>, TResult?> Fail)
+        Func<Seq<Error>, TResult?> Fail,
+        bool continueOnCapturedContext = false)
     {
-        return task.Result.DefaultMatchUnsafeAsync(Succ, Fail);
+        var validation = await task.ConfigureAwait(continueOnCapturedContext);
+        return validation.MatchUnsafe(Succ, Fail);
     }
 
     /// <summary>
@@ -226,16 +244,19 @@ public static class ValidationExtensions
     /// <param name="task">Задача с объектом validation</param>
     /// <param name="Succ">Делегат, вызывающийся в случае статуса успеха</param>
     /// <param name="Fail">Делегат, вызывающийся в случае статуса ошибки</param>
+    /// <param name="continueOnCapturedContext">Признак необходимости выполнить продолжение на захваченном контексте</param>
     /// <typeparam name="TValue">Тип значения в монаде</typeparam>
     /// <typeparam name="TResult">Тип результата</typeparam>
     /// <returns></returns>
-    public static Task<TResult> DefaultMatchAsync<TValue, TResult>(
+    public static async Task<TResult> DefaultMatchAsync<TValue, TResult>(
         this Task<Validation<Error, TValue>> task,
         Func<TValue, Task<TResult>> Succ,
-        Func<Seq<Error>, TResult> Fail)
+        Func<Seq<Error>, TResult> Fail,
+        bool continueOnCapturedContext = false)
         where TResult : notnull
     {
-        return task.Result.DefaultMatchAsync(Succ, Fail);
+        var validation = await task.ConfigureAwait(continueOnCapturedContext);
+        return validation.Match(value => Succ(value).Result, Fail);
     }
 
     /// <summary>
@@ -261,14 +282,17 @@ public static class ValidationExtensions
     /// <param name="task">Задача с объектом validation</param>
     /// <param name="Succ">Делегат, вызывающийся в случае статуса успеха</param>
     /// <param name="Fail">Делегат, вызывающийся в случае статуса ошибки</param>
+    /// <param name="continueOnCapturedContext">Признак необходимости выполнить продолжение на захваченном контексте</param>
     /// <typeparam name="TValue">Тип значения в монаде</typeparam>
     /// <typeparam name="TResult">Тип результата</typeparam>
     /// <returns></returns>
-    public static Task<TResult?> DefaultMatchUnsafeAsync<TValue, TResult>(
+    public static async Task<TResult?> DefaultMatchUnsafeAsync<TValue, TResult>(
         this Task<Validation<Error, TValue>> task,
         Func<TValue, Task<TResult?>> Succ,
-        Func<Seq<Error>, TResult?> Fail)
+        Func<Seq<Error>, TResult?> Fail,
+        bool continueOnCapturedContext = false)
     {
-        return task.Result.DefaultMatchUnsafeAsync(Succ, Fail);
+        var validation = await task.ConfigureAwait(continueOnCapturedContext);
+        return validation.MatchUnsafe(value => Succ(value).Result, Fail);
     }
 }
